@@ -1,6 +1,6 @@
 const nodeMailer = require('nodemailer')
 
-async function sendOtp(email, purpose) {
+async function sendOtp(email, purpose, person) {
     var minm = 1000000; 
     var maxm = 9999999; 
     const otp = await Math.floor(Math.random() * (maxm - minm + 1)) + minm
@@ -18,7 +18,10 @@ async function sendOtp(email, purpose) {
       from: 'drone7160@gmail.com',
       to: `${email}`,
       subject: `Drone login Otp`,
-      text: `YOur otp for ${purpose} to Drone Mania is ${otp}`
+      text: `Hello ${person}<br>
+             Did you just loged in, Your otp for ${purpose} to DronePoint is <strong>${otp}</strong>.
+            <br>If its not you than someone else just tried to loged into your account.<br>
+            We Preffer you to change password or call support team if its not you.`
     }
     
     transporter.sendMail(mailOptions, function(error, info){

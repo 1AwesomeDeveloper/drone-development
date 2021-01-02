@@ -44,9 +44,10 @@ const loginTokendecoder = async (req, res, next) =>{
             throw new Error()
         }
 
-        const validOtp = ((Date.now() - coustmer.loginStatus.otp.time) <= 120000)
+        const validOtp = ((Date.now() - coustmer.loginStatus.otp.time) <= 180000)
         const tokenExesist = coustmer.loginStatus.loginToken == loginToken
         if(!tokenExesist || !validOtp){
+            console.log('Otp expired')
             throw new Error()
         }
 

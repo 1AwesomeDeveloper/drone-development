@@ -18,7 +18,7 @@ const coustmerOtpGeneration = async(email, password)=>{
         return {status:false}
     }
 
-    const otp = await sendOtp(email, 'login')
+    const otp = await sendOtp(email, 'login', 'customer')
     console.log(otp)
     loginToken = await customer.generateLoginToken(otp)
 

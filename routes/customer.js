@@ -60,9 +60,9 @@ router.post('/login', async (req, res) =>{
 router.post('/otpValidation', loginTokendecoder, async (req, res) =>{
     try{
         const { otp } = req.body
-        const accessTokens = await req.coustmer.generateToken()
+        const accessToken = await req.coustmer.generateToken()
         console.log(otp)
-        res.send({message:`Welcome, ${req.coustmer.name}`, accessTokens})
+        res.send({message:`Welcome, ${req.coustmer.name}`, accessToken})
     } catch(e) {
         res.status(500).send({error:{message:'Server is down right now'}})
     }

@@ -4,22 +4,23 @@ const bcrypt = require('bcrypt')
 
 const coustmerOtpGeneration = async(email, password)=>{
     //find coustmer
-    const coustmer = await Coustmer.findOne({email})
-    if(!coustmer){
-        console.log('coustmer not found')
+    const customer = await Coustmer.findOne({email})
+    console.log(customer)
+    if(!customer){
+        console.log('customer not found')
         return {status:false} 
     }
     
-    // check coustmer password
-    const isMatch = await bcrypt.compare(password, coustmer.password)
-    if(!isMatch || !coustmer.verificationStatus){
+    // check customer password
+    const isMatch = await bcrypt.compare(password, customer.password)
+    if(!isMatch || !customer.verificationStatus){
         console.log('invlaid password')
         return {status:false}
     }
 
     const otp = await sendOtp(email, 'login')
     console.log(otp)
-    loginToken = await coustmer.generateLoginToken(otp)
+    loginToken = await customer.generateLoginToken(otp)
 
     return {loginToken, status:true}
 }

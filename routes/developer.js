@@ -8,7 +8,7 @@ const sendOtp = require('../middlware/sendOtp')
 
 const router = express.Router()
 
-router.post('/registeration', async (req, res) =>{
+router.post('/register', async (req, res) =>{
     try{
         //console.log("hell 213213")
         const developerDetails = {

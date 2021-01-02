@@ -72,14 +72,11 @@ router.get('/modals', authDeveloper, async (req, res) =>{
 router.post('/droneRegestration', authDeveloper, async (req, res) =>{
     try{
         const modal = await DModal.findOne({modalName: req.body.modal})
-        console.log("done")
-        console.log(modal)
         if(!modal){
             return res.send({error:{message:"Modal of such Name not found."}})
         }
 
         const coustmer = await Coustmer.findOne({email:req.body.assignedTo})
-        console.log(coustmer)
         if(!coustmer){
             return res.status(403).send({error:{message:"Please provide a valid email for assignment."}})
         }

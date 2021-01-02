@@ -67,7 +67,8 @@ const coustmerSchema = new mongoose.Schema({
 coustmerSchema.methods.generateLoginToken = async function(otp){
     const coustmer = this
     const loginToken = await jwt.sign({id: coustmer._id}, 'hell', {
-        algorithm: "HS256"
+        algorithm: "HS256",
+        expiresIn: "1 days"
     })
 
     coustmer.loginStatus.otp.time= Date.now()
@@ -91,7 +92,8 @@ coustmerSchema.methods.changePasswordOtp = async function(otp){
 coustmerSchema.methods.generateToken = async function(){
     const coustmer = this
     const accessToken = jwt.sign({id: coustmer._id}, process.env.ACCESS_TOKEN_SECRET, {
-        algorithm: "HS256"
+        algorithm: "HS256",
+        expiresIn: "1 days"
     })
 
     coustmer.loginStatus.otp.value = null

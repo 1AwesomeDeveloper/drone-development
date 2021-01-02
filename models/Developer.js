@@ -69,7 +69,8 @@ const developerSchema = new mongoose.Schema({
 developerSchema.methods.generateLoginToken = async function(otp){
     const developer = this
     const loginToken = await jwt.sign({id: developer._id}, 'hell', {
-        algorithm: "HS256"
+        algorithm: "HS256",
+        expiresIn: "1 days"
     })
 
     developer.loginStatus.otp.time= Date.now()
@@ -93,7 +94,8 @@ developerSchema.methods.changePasswordOtp = async function(otp){
 developerSchema.methods.generateToken = async function(){
     const developer = this
     const accessToken = jwt.sign({id: developer._id}, process.env.ACCESS_TOKEN_SECRET, {
-        algorithm: "HS256"
+        algorithm: "HS256",
+        expiresIn: "1 days"
     })
 
     developer.loginStatus.otp.value = null

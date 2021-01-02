@@ -44,6 +44,7 @@ router.post('/login', async (req, res) =>{
             if(valid.error)
                 return res.send({error: valid.error})
             
+            console.log(email, password)
             return res.send({error:{message:'Either you are not registered or not verifed by our developers'}})
         }
 

@@ -24,7 +24,9 @@ async function verifyDroneRegestration(body) {
         status = 1
     }).catch(e => {
         console.log("fail")
-        console.log(e)
+        console.log(e.request.outputData.forEach(element => {
+          console.log(element)  
+        }))
         status = -1
     })
 

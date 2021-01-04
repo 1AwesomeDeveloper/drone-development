@@ -25,11 +25,11 @@ const droneSchema = new mongoose.Schema({
         type:Number,
         required:true
     },
-    compatiblePlayload:{
+    compatiblePayload:{
         type:Number,
         required:true
     },
-    dorneCategoryTypes:{
+    droneCategoryType:{
         type:String,
         // enum:['Nano(+250g)'],
         required:true
@@ -46,7 +46,7 @@ const droneSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    enignePower:{
+    enginePower:{
         type:Number,
         required:true
     },

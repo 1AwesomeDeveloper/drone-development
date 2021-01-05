@@ -38,7 +38,7 @@ const droneSchema = new mongoose.Schema({
         type:String,
         //required:true
     },
-    pursposeOfOperation:{
+    purposeOfOperation:{
         type:String,
         required:true
     },

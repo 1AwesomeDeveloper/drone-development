@@ -16,6 +16,21 @@ const Coustmer = require('../models/Coustmer')
 router.post('/modalRegestration', upload, authDeveloper, async (req, res)=>{
     try{
         const obj = JSON.parse(JSON.stringify(req.body))
+        for(var key in obj){
+            if(!obj[key] || obj[key] == ""){
+                console.log(obj[key], key)
+                return res.send({message:`Please check ${key}`})
+            }
+        }
+        console.log()
+
+        obj.modalName = obj.modalName.toString()
+        obj.modalNumber = obj.modalNumber.toString()
+        obj.wingType = obj.wingType.toString()
+        obj.droneCategoryType = obj.droneCategoryType.toString()
+        obj.purposeOfOperation = obj.purposeOfOperation.toString()
+        obj.engineType = obj.engineType.toString()
+
         if(req.file){
             obj.RPASModelPhoto = req.file.buffer.toString('base64')
         }

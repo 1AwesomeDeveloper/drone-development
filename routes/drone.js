@@ -126,12 +126,12 @@ router.post('/droneRegestration', authDeveloper, async (req, res) =>{
 
           const status = await DgcaCall.verifyDroneRegestration(body)
           //console.log(status)
-          if(status == -1 ){
-              return res.status(400).send({error:{message: "Please check your info"}})
-          }
-          else if(status == 0 ){
-              return res.send({error:{message:"Server is down right now"}})
-          }
+        //   if(status == -1 ){
+        //       return res.status(400).send({error:{message: "Please check your info, rejected by DGCA"}})
+        //   }
+        //   else if(status == 0 ){
+        //       return res.send({error:{message:"Server is down right now"}})
+        //   }
 
         await drone.save()
 

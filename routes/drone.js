@@ -44,7 +44,7 @@ router.post('/modalRegestration', upload, authDeveloper, async (req, res)=>{
             console.log('multer')
         }
         console.log(e)
-        res.status(400).send({error:{message:'Please provide correct details', error:e}})
+        res.status(400).send({error:{message:'Please check the image type and size', error:e}})
     }
     
 })

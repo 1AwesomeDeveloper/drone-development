@@ -152,11 +152,32 @@ router.get('/viewDrones', authDeveloper, async (req, res) =>{
     }
 })
 
-router.delete('/deRegisterDrone/:id', authDeveloper, async (req, res) =>{
-    try {
+router.get('/droneDetails/:id', authDeveloper, async (req, res) => {
+    try{
+        if(!req.params.id){
+            return res.send({error:{message:'Please provide drone Id'}})
+        }
         const drone = await Drone.findById(req.params.id)
         if(!drone){
             return res.status(400).send({error:{message:'no modal with this name exesist'}})
+        }
+
+        res.send(drone)
+    } catch(e){
+        console.log(e)
+        res.status(500).send({error:e})
+    }
+})
+
+router.delete('/deRegisterDrone/:id', authDeveloper, async (req, res) =>{
+    try {
+        if(!req.params.id){
+            return res.send({error:{message:'Please provide drone Id'}})
+        }
+
+        const drone = await Drone.findById(req.params.id)
+        if(!drone){
+            return res.status(400).send({error:{message:'This Drone is not present on our base'}})
         }
 
         let body = {

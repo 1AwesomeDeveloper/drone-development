@@ -18,10 +18,10 @@ async function sendOtp(email, purpose, person) {
       from: 'drone7160@gmail.com',
       to: `${email}`,
       subject: `Drone login Otp`,
-      text: `Hello ${person}<br>
-             Did you just loged in, Your otp for ${purpose} to DronePoint is <strong>${otp}</strong>.
-            <br>If its not you than someone else just tried to loged into your account.<br>
-            We Preffer you to change password or call support team if its not you.`
+      text: `Hello ${person}
+      Did you just loged in, Your otp for ${purpose} to DronePoint is ${otp}.
+      If its not you than someone else just tried to loged into your account.
+      We Preffer you to change password or call support team if its not you.`
     }
     
     transporter.sendMail(mailOptions, function(error, info){

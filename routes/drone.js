@@ -144,7 +144,7 @@ router.post('/droneRegestration', authDeveloper, async (req, res) =>{
 
 router.get('/viewDrones', authDeveloper, async (req, res) =>{
     try{
-        const drones = await Drone.find({}, {_id: 1, modal: 1, droneId: 1, assignedTo: 1})
+        const drones = await Drone.find({}, {_id: 1, modal: 1, droneId: 1, assignedTo: 1, droneNo:1})
         res.send(drones)
     } catch(e) {
         console.log(e)

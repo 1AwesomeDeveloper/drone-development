@@ -191,13 +191,14 @@ router.post('/checkMyDrones', authCoustmer, async (req, res) => {
 
 router.post('/flyDrone', authCoustmer, async (req, res) => {
     try{
-        const drone = await Drone.update({_id:req.body.id},{$push: { accessDates: Date.now }})
+        const drone = await Drone.updateOne({_id:req.body.id},{$push: { accessDates: Date.now() }})
         if(!drone){
             return res.send({error:{message:"There is no such drone in your account."}})
         }
 
         res.send({message:"You can now fly your drone."})
     } catch(e){
+        console.log(e)
         res.status(500).send({error:{message:"Something went wrong Please try again."}})
     }
 })

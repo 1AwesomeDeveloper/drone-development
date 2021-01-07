@@ -31,16 +31,16 @@ async function sendOtp(email, purpose, person) {
           <title>Document</title>
           <style>
               body{
-                  text-align: center;
-                  background-color: tomato;
+                  text-align: center; 
+                  background-color:rgb(104, 218, 253);
                   font-family: sans-serif;
               }
               .otp{
-                  color: white;
+                  color:rgb(37, 37, 37);
               }
           </style>
       </head>
-      <body>
+      <body style="bac">
           <h1>Drone-Point</h1>
           <br>
           <h2>Hello ${person}</h2>

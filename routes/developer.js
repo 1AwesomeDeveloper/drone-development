@@ -1,6 +1,7 @@
 const express = require('express')
 const jwt = require('jsonwebtoken')
 const { loginTokendecoder, authDeveloper, forgotPasswordTokendecoder } = require('../middlware/dev_authentcation')
+const mail = require('../middlware/mail')
 const Developer = require('../models/Developer')
 const Coustmer = require('../models/Coustmer')
 const developerOtpGeneration = require('../middlware/developerOtpValidation')
@@ -19,7 +20,12 @@ router.post('/register', async (req, res) =>{
         }
         const developer = new Developer(developerDetails)
         await developer.save()
-        res.send({message:'You are registred Succesfully! but you have to wait until someone verifiy you'})
+        mail(developerDetails.email, {
+            head:'Welcome to drone Point',
+            msg:'Thankyou for regestring on DronePoint but you have to wait for verification mail by our developers.'
+        }, developerDetails.name, 'Regestration on DronePoint')
+
+        res.send({message:'You are registred Succesfully! but you have to wait until someone verifiy you, you will be thorugh mail when verified'})
     } catch (e) {
         console.log("hell")
         console.log(e)
@@ -180,13 +186,18 @@ router.get('/unverifiedAccounts', authDeveloper, async (req, res) =>{
 router.get('/verifyCts/:id', authDeveloper, async (req, res)=>{
     try{
         
-        const coutmer = await Coustmer.findByIdAndUpdate(
+        const customer = await Coustmer.findByIdAndUpdate(
             {_id:req.params.id},
             {
                 verificationStatus:true
-            })
+            }) 
+            
+        await mail(customer.email,{
+            head:'Welcome to DronePoint',
+            msg:'Your are now a verified user and can use our services.Thankyou for choosing us'
+        }, customer.name, 'Drone point Verification' )
 
-        res.send({message:`${coutmer.name} is successfully verified`})
+        res.send({message:`${customer.name} is successfully verified`})
     } catch(error){
         console.log(error)
         res.status(403).send({error:{message:'Something is worng', error:error.message}})
@@ -196,6 +207,12 @@ router.get('/verifyCts/:id', authDeveloper, async (req, res)=>{
 router.get('/verifyDev/:id', authDeveloper, async (req, res)=>{
     try{
         const developer = await Developer.findByIdAndUpdate({_id:req.params.id},{verificationStatus:true,})
+
+        await mail(customer.email,{
+            head:'Welcome to DronePoint',
+            msg:'Your are now a verified user and can use our services.Thankyou for choosing us'
+        }, customer.name, 'Drone point Verification' )
+
         res.send({message:`${developer.name} is successfully verified`})
     } catch(error){
         console.log(error)

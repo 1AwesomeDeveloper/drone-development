@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const Developer = require('./Developer')
 
-const coustmerSchema = new mongoose.Schema({
+const customerSchema = new mongoose.Schema({
     name:{
         type:String,
         required:true,
@@ -64,49 +64,49 @@ const coustmerSchema = new mongoose.Schema({
     accessTokens:[String]
 })
 
-coustmerSchema.methods.generateLoginToken = async function(otp){
-    const coustmer = this
-    const loginToken = await jwt.sign({id: coustmer._id}, 'hell', {
+customerSchema.methods.generateLoginToken = async function(otp){
+    const customer = this
+    const loginToken = await jwt.sign({id: customer._id}, 'hell', {
         algorithm: "HS256",
         expiresIn: "1 days"
     })
 
-    coustmer.loginStatus.otp.time= Date.now()
-    coustmer.loginStatus.otp.value = otp
-    coustmer.loginStatus.loginToken = loginToken
+    customer.loginStatus.otp.time= Date.now()
+    customer.loginStatus.otp.value = otp
+    customer.loginStatus.loginToken = loginToken
     
-    await coustmer.save()
+    await customer.save()
 
     return loginToken
 }
 
-coustmerSchema.methods.changePasswordOtp = async function(otp){
-    const coustmer = this
+customerSchema.methods.changePasswordOtp = async function(otp){
+    const customer = this
 
-    coustmer.passwordChangeStatus.otp.value = otp
-    coustmer.passwordChangeStatus.otp.time = Date.now()
+    customer.passwordChangeStatus.otp.value = otp
+    customer.passwordChangeStatus.otp.time = Date.now()
     
-    await coustmer.save()
+    await customer.save()
 }
 
-coustmerSchema.methods.generateToken = async function(){
-    const coustmer = this
-    const accessToken = jwt.sign({id: coustmer._id}, process.env.ACCESS_TOKEN_SECRET, {
+customerSchema.methods.generateToken = async function(){
+    const customer = this
+    const accessToken = jwt.sign({id: customer._id}, process.env.ACCESS_TOKEN_SECRET, {
         algorithm: "HS256",
         expiresIn: "1 days"
     })
 
-    coustmer.loginStatus.otp.value = null
-    coustmer.loginStatus.loginToken = null
-    coustmer.accessTokens.push(accessToken.toString())
-    await coustmer.save()
+    customer.loginStatus.otp.value = null
+    customer.loginStatus.loginToken = null
+    customer.accessTokens.push(accessToken.toString())
+    await customer.save()
 
     return accessToken
 }
 
-coustmerSchema.methods.verifyCoustmer = async function(){
-    const coustmer = this
-    const verifyingPerson = await Developer.findById(coustmer.verification.verifierId)
+customerSchema.methods.verifyCustomer = async function(){
+    const customer = this
+    const verifyingPerson = await Developer.findById(customer.verification.verifierId)
 
     if(!verifyingPerson){
         return false
@@ -115,17 +115,17 @@ coustmerSchema.methods.verifyCoustmer = async function(){
     }
 }
 
-coustmerSchema.pre('save', async function (next) {
-    const coustmer = this
+customerSchema.pre('save', async function (next) {
+    const customer = this
 
-    if(coustmer.isModified('password')) {
-        coustmer.password = await bcrypt.hash(coustmer.password, 8)
+    if(customer.isModified('password')) {
+        customer.password = await bcrypt.hash(customer.password, 8)
     }
 
     next()
 })
 
 
-const Coustmer = mongoose.model('Coustmer', coustmerSchema)
+const Customer = mongoose.model('Customer', customerSchema)
 
-module.exports = Coustmer
+module.exports = Customer

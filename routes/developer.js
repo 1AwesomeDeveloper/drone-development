@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const { loginTokendecoder, authDeveloper, forgotPasswordTokendecoder } = require('../middlware/dev_authentcation')
 const mail = require('../middlware/mail')
 const Developer = require('../models/Developer')
-const Coustmer = require('../models/Coustmer')
+const Customer = require('../models/Customer')
 const developerOtpGeneration = require('../middlware/developerOtpValidation')
 const sendOtp = require('../middlware/sendOtp')
 
@@ -69,7 +69,7 @@ router.post('/otpValidation', loginTokendecoder, async (req, res) =>{
 
 router.get('/profile', authDeveloper, (req, res) =>{
     try{
-        const developer = {message:`Welcome back ${req.developer.name}`,name: req.developer.name, email:req.developer.email, dob:req.developer.dob}
+        const developer = {message:`Welcome back ${req.developer.name}`,name: req.developer.name, email:req.developer.email, mobile:req.developer.phNumber}
         res.send(developer)
     } catch(e) {
         console.log(e)
@@ -107,9 +107,9 @@ router.post('/changePassword', authDeveloper, async (req, res) =>{
         req.developer.password = newPassword
         req.developer.accessTokens = []
         await req.developer.save()
-        const accessTokens = await req.developer.generateToken()
+        const accessToken = await req.developer.generateToken()
         
-        res.send({accessTokens, message:'Your password has been changed successfuly'})
+        res.send({accessToken, message:'Your password has been changed successfuly'})
     } catch (e) {
         console.log(e)
         res.status(500).send({error:{message:'Server is down right now'}})
@@ -176,8 +176,8 @@ router.delete('/deleteAccount', authDeveloper, async (req, res) =>{
 
 router.get('/unverifiedAccounts', authDeveloper, async (req, res) =>{
     try{
-        const unverifiedDev = await Developer.find({verificationStatus: false})
-        const unverifiedCts = await Coustmer.find({verificationStatus:false})
+        const unverifiedDev = await Developer.find({verificationStatus: false},{name:1,_id:1,email:1,phNumber:1})
+        const unverifiedCts = await Customer.find({verificationStatus:false},{name:1,_id:1,email:1,phNumber:1})
         res.send({unverifiedDev, unverifiedCts})
     } catch(error){
         res.status(403).send({error:{message:'Something is worng', error:error.message}})
@@ -187,7 +187,7 @@ router.get('/unverifiedAccounts', authDeveloper, async (req, res) =>{
 router.get('/verifyCts/:id', authDeveloper, async (req, res)=>{
     try{
         
-        const customer = await Coustmer.findByIdAndUpdate(
+        const customer = await Customer.findByIdAndUpdate(
             {_id:req.params.id},
             {
                 verificationStatus:true
@@ -198,10 +198,10 @@ router.get('/verifyCts/:id', authDeveloper, async (req, res)=>{
             msg:'Your are now a verified user and can use our services.Thankyou for choosing us'
         }, customer.name, 'Drone point Verification' )
 
-        res.send({message:`${customer.name} is successfully verified`})
+        res.send({status:true})
     } catch(error){
         console.log(error)
-        res.status(403).send({error:{message:'Something is worng', error:error.message}})
+        res.status(403).send({error:{message:'Something is worng', error:error.message}, status:false})
     }
 })
 
@@ -214,10 +214,10 @@ router.get('/verifyDev/:id', authDeveloper, async (req, res)=>{
             msg:'Your are now a verified user and can use our services.Thankyou for choosing us'
         }, developer.name, 'Drone point Verification' )
 
-        res.send({message:`${developer.name} is successfully verified`})
+        res.send({status:true})
     } catch(error){
         console.log(error)
-        res.status(403).send({error:{message:'Something is worng', error:error.message}})
+        res.status(403).send({error:{message:'Something is worng', error:error.message, status:false}})
     }
 })
 

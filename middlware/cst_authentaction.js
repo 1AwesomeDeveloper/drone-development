@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
-const Coustmer = require('../models/Coustmer')
+const Customer = require('../models/Customer')
 
-const authCoustmer = async (req, res, next) =>{
+const authCustomer = async (req, res, next) =>{
     
     try{
         const accessToken = req.headers['auth']
@@ -10,16 +10,16 @@ const authCoustmer = async (req, res, next) =>{
         }
         
         const payload = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET)
-        const coustmer = await Coustmer.findById(payload.id)
-        if(!coustmer){
+        const customer = await Customer.findById(payload.id)
+        if(!customer){
             throw new Error()
         }
 
-        const tokenExesist = coustmer.accessTokens.includes(accessToken)
-        if(!tokenExesist || !coustmer.verificationStatus){
+        const tokenExesist = customer.accessTokens.includes(accessToken)
+        if(!tokenExesist || !customer.verificationStatus){
             throw new Error()
         }
-        req.coustmer = coustmer
+        req.customer = customer
         next()
     } catch(e){
         return res.status(403).send({error:{message:'Please Login'}})
@@ -38,24 +38,24 @@ const loginTokendecoder = async (req, res, next) =>{
         }
         
         const payload = jwt.verify(loginToken, 'hell')
-        const coustmer = await Coustmer.findById(payload.id)
-        if(!coustmer){
-            console.log('coustmer not found')
+        const customer = await Customer.findById(payload.id)
+        if(!customer){
+            console.log('customer not found')
             throw new Error()
         }
 
-        const validOtp = ((Date.now() - coustmer.loginStatus.otp.time) <= 180000)
-        const tokenExesist = coustmer.loginStatus.loginToken == loginToken
+        const validOtp = ((Date.now() - customer.loginStatus.otp.time) <= 180000)
+        const tokenExesist = customer.loginStatus.loginToken == loginToken
         if(!tokenExesist || !validOtp){
             console.log('Otp expired')
             throw new Error()
         }
 
-        if(otp != coustmer.loginStatus.otp.value || !otp){
+        if(otp != customer.loginStatus.otp.value || !otp){
             return res.send({error:{message:'Opt does not match'}})
         }
         
-        req.coustmer = coustmer
+        req.customer = customer
         next()
     } catch(e){
         console.log(e)
@@ -75,30 +75,30 @@ const forgotPasswordTokendecoder = async (req, res, next) =>{
         }
         
         const payload = jwt.verify(passwordToken, 'hell')
-        const coustmer = await Coustmer.findOne({email: payload.email})
-        if(!coustmer){
-            console.log('coustmer not found')
+        const customer = await Customer.findOne({email: payload.email})
+        if(!customer){
+            console.log('customer not found')
             throw new Error()
         }
 
-        const validOtp = ((Date.now() - coustmer.passwordChangeStatus.otp.time) <= 120000)
-        const tokenExesist = coustmer.passwordChangeStatus.passwordToken == passwordToken
+        const validOtp = ((Date.now() - customer.passwordChangeStatus.otp.time) <= 120000)
+        const tokenExesist = customer.passwordChangeStatus.passwordToken == passwordToken
         if(!tokenExesist || !validOtp){
             console.log(tokenExesist, validOtp)
             throw new Error()
         }
 
-        if(otp != coustmer.passwordChangeStatus.otp.value || !otp){
-            console.log(otp, coustmer.passwordChangeStatus.otp.value)
+        if(otp != customer.passwordChangeStatus.otp.value || !otp){
+            console.log(otp, customer.passwordChangeStatus.otp.value)
             return res.send({error:{message:'Opt does not match'}})
         }
 
-        coustmer.password = newPassword
-        coustmer.passwordChangeStatus.passwordToken = ''
-        coustmer.passwordChangeStatus.otp.value = 0
-        await coustmer.save()
+        customer.password = newPassword
+        customer.passwordChangeStatus.passwordToken = ''
+        customer.passwordChangeStatus.otp.value = 0
+        await customer.save()
 
-        req.coustmer = coustmer
+        req.customer = customer
         next()
     } catch(e){
         console.log(e)
@@ -107,4 +107,4 @@ const forgotPasswordTokendecoder = async (req, res, next) =>{
 
 }
 
-module.exports = { loginTokendecoder, authCoustmer, forgotPasswordTokendecoder }
+module.exports = { loginTokendecoder, authCustomer, forgotPasswordTokendecoder }

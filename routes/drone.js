@@ -8,7 +8,7 @@ const DgcaCall = require('../middlware/DgcaCall')
 
 const DModal = require('../models/DModal')
 const Drone = require('../models/Drone')
-const Coustmer = require('../models/Coustmer')
+const Customer = require('../models/Customer')
 
 //********************************************************* */
 // Routes for different dorne modals*********************** */
@@ -91,8 +91,8 @@ router.post('/droneRegestration', authDeveloper, async (req, res) =>{
             return res.send({error:{message:"Modal of such Name not found."}})
         }
 
-        const coustmer = await Coustmer.findOne({email:req.body.assignedTo})
-        if(!coustmer){
+        const customer = await Customer.findOne({email:req.body.assignedTo})
+        if(!customer){
             return res.status(403).send({error:{message:"Please provide a valid email for assignment."}})
         }
         

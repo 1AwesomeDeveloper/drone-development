@@ -1,10 +1,10 @@
 //
 const express = require('express')
 const jwt = require('jsonwebtoken')
-const { loginTokendecoder, authCoustmer, forgotPasswordTokendecoder } = require('../middlware/cst_authentaction')
-const Coustmer = require('../models/Coustmer')
+const { loginTokendecoder, authCustomer, forgotPasswordTokendecoder } = require('../middlware/cst_authentaction')
+const Customer = require('../models/Customer')
 const Drone = require('../models/Drone')
-const coustmerOtpGeneration = require('../middlware/coustmerOtpValidation')
+const customerOtpGeneration = require('../middlware/customerOtpValidation')
 const sendOtp = require('../middlware/sendOtp')
 
 
@@ -12,7 +12,7 @@ const router = express.Router()
 
 router.post('/register', async (req, res) =>{
     try{
-        const exesist = Coustmer.findOne({email: req.body.email})
+        const exesist = Customer.findOne({email: req.body.email})
 
         if(!exesist){
             response.status(403).send({error:{message:'Invalid Details'}})
@@ -25,8 +25,8 @@ router.post('/register', async (req, res) =>{
             phNumber:req.body.phNumber
         }
 
-        const coustmer = new Coustmer(custmerDetails)
-        await coustmer.save()
+        const customer = new Customer(custmerDetails)
+        await customer.save()
         res.send({message:'You are registred Succesfully! but you have to wait until someone verify you'})
     } catch (e) {
         console.log(e)
@@ -38,7 +38,7 @@ router.post('/login', async (req, res) =>{
     try{
         const { email, password } = req.body
         
-        const valid = await coustmerOtpGeneration(email, password)
+        const valid = await customerOtpGeneration(email, password)
         if(!valid.status){
             console.log(valid)
             if(valid.error)
@@ -60,28 +60,28 @@ router.post('/login', async (req, res) =>{
 router.post('/otpValidation', loginTokendecoder, async (req, res) =>{
     try{
         const { otp } = req.body
-        const accessToken = await req.coustmer.generateToken()
+        const accessToken = await req.customer.generateToken()
         console.log(otp)
-        res.send({message:`Welcome, ${req.coustmer.name}`, accessToken})
+        res.send({message:`Welcome, ${req.customer.name}`, accessToken})
     } catch(e) {
         res.status(500).send({error:{message:'Server is down right now'}})
     }
 })
 
-router.get('/profile', authCoustmer, (req, res) =>{
+router.get('/profile', authCustomer, (req, res) =>{
     try{
-        const coustmer = {message:`Welcome back ${req.coustmer.name}`,name: req.coustmer.name, email:req.coustmer.email, phNumber:req.coustmer.phNumber}
-        res.send(coustmer)
+        const customer = {message:`Welcome back ${req.customer.name}`,name: req.customer.name, email:req.customer.email, phNumber:req.customer.phNumber}
+        res.send(customer)
     } catch(e) {
         console.log(e)
         res.status(500).send({error:{message:'Server is down right now'}})
     }
 })
 
-router.get('/changePassword', authCoustmer, async (req, res) =>{
+router.get('/changePassword', authCustomer, async (req, res) =>{
     try{
-        const otp = await sendOtp(req.coustmer.email, 'Password Change')
-        req.coustmer.changePasswordOtp(otp)
+        const otp = await sendOtp(req.customer.email, 'Password Change')
+        req.customer.changePasswordOtp(otp)
         
         res.send({message:'Validate opt sent to your mail'})
     } catch (e) {
@@ -90,25 +90,25 @@ router.get('/changePassword', authCoustmer, async (req, res) =>{
     }
 })
 
-router.post('/changePassword', authCoustmer, async (req, res) =>{
+router.post('/changePassword', authCustomer, async (req, res) =>{
     try{
         const { otp, newPassword } = req.body
         console.log(otp, newPassword)
-        const validOtp = ((Date.now() - req.coustmer.passwordChangeStatus.otp.time) <= 120000)
+        const validOtp = ((Date.now() - req.customer.passwordChangeStatus.otp.time) <= 120000)
         if(!validOtp){
             console.log('vliadity time')
             return res.send({error:{message:'Invalid Otp'}})
         }
 
-        if(otp != req.coustmer.passwordChangeStatus.otp.value){
+        if(otp != req.customer.passwordChangeStatus.otp.value){
             console.log('otp')
             return res.send({error:{message:'Invalid Otp'}})
         }
 
-        req.coustmer.password = newPassword
-        req.coustmer.accessTokens = []
-        await req.coustmer.save()
-        const accessTokens = await req.coustmer.generateToken()
+        req.customer.password = newPassword
+        req.customer.accessTokens = []
+        await req.customer.save()
+        const accessTokens = await req.customer.generateToken()
         
         res.send({accessTokens, message:'Your password has been changed successfuly'})
     } catch (e) {
@@ -126,7 +126,7 @@ router.post('/forgotPassword', async (req, res) =>{
         }) 
         const otp = await sendOtp(email, 'Password Change')
         console.log('we are here')
-        const coustmer = await Coustmer.findOneAndUpdate({email}, {
+        const customer = await Customer.findOneAndUpdate({email}, {
             passwordChangeStatus:{
                 passwordToken:passwordChangeToken,
                 otp:{
@@ -156,29 +156,29 @@ router.post('/fpOtpValidation', forgotPasswordTokendecoder, async (req, res) =>{
     }
 })
 
-router.get('/logout', authCoustmer, async (req, res) =>{
+router.get('/logout', authCustomer, async (req, res) =>{
     try{
-        await Coustmer.findByIdAndUpdate(req.coustmer._id, {accessTokens:[]})
-        res.send({message:`${req.coustmer.name}, you are loged out Successfuly!`})
+        await Customer.findByIdAndUpdate(req.customer._id, {accessTokens:[]})
+        res.send({message:`${req.customer.name}, you are loged out Successfuly!`})
     } catch(e){
         console.log(e.message)
         res.status(403).send({error:{message:'Something is worng', error:error.message}})
     }
 })
 
-router.delete('/deleteAccount', authCoustmer, async (req, res) =>{
+router.delete('/deleteAccount', authCustomer, async (req, res) =>{
     try {
-        const removedAccount = await Coustmer.findByIdAndDelete(req.coustmer._id)
-        res.send({message:`${req.coustmer.name}, Your account is deletd `})
+        const removedAccount = await Customer.findByIdAndDelete(req.customer._id)
+        res.send({message:`${req.customer.name}, Your account is deletd `})
     } catch (error) {
         res.status(403).send({error:{message:'Something is worng', error:error.message}})
     }
 })
 
 
-router.post('/checkMyDrones', authCoustmer, async (req, res) => {
+router.post('/checkMyDrones', authCustomer, async (req, res) => {
     try{
-        const drones = await Drone.find({assignedto: req.coustmer.email}, {droneNo:true, modal:true, _id:true})
+        const drones = await Drone.find({assignedto: req.customer.email}, {droneNo:true, modal:true, _id:true})
         if(!drone){
             return res.send({error:{message:"There is no drone registered by You."}})
         }
@@ -189,7 +189,7 @@ router.post('/checkMyDrones', authCoustmer, async (req, res) => {
     }
 })
 
-router.post('/flyDrone', authCoustmer, async (req, res) => {
+router.post('/flyDrone', authCustomer, async (req, res) => {
     try{
         const drone = await Drone.updateOne({_id:req.body.id},{$push: { accessDates: Date.now() }})
         if(!drone){

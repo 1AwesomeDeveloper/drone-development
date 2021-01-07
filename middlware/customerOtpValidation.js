@@ -1,10 +1,10 @@
-const Coustmer = require('../models/Coustmer')
+const Customer = require('../models/Customer')
 const sendOtp = require('./sendOtp')
 const bcrypt = require('bcrypt')
 
-const coustmerOtpGeneration = async(email, password)=>{
+const customerOtpGeneration = async(email, password)=>{
     //find coustmer
-    const customer = await Coustmer.findOne({email})
+    const customer = await Customer.findOne({email})
     console.log(customer)
     if(!customer){
         console.log('customer not found')
@@ -26,4 +26,4 @@ const coustmerOtpGeneration = async(email, password)=>{
 }
 
 
-module.exports = coustmerOtpGeneration
+module.exports = customerOtpGeneration

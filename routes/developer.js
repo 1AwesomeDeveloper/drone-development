@@ -208,10 +208,10 @@ router.get('/verifyDev/:id', authDeveloper, async (req, res)=>{
     try{
         const developer = await Developer.findByIdAndUpdate({_id:req.params.id},{verificationStatus:true,})
 
-        await mail(customer.email,{
+        await mail(developer.email,{
             head:'Welcome to DronePoint',
             msg:'Your are now a verified user and can use our services.Thankyou for choosing us'
-        }, customer.name, 'Drone point Verification' )
+        }, developer.name, 'Drone point Verification' )
 
         res.send({message:`${developer.name} is successfully verified`})
     } catch(error){

@@ -36,7 +36,7 @@ async function sendMail(email, message, name, subject) {
       <body style="background-color:rgb(104, 218, 253);text-align: center; ">
           <h1>Drone-Point</h1>
           <br>
-          <h2>Hello ${person}</h2>
+          <h2>Hello ${name}</h2>
           <h3>${message.head}</h3>
           <p>${message.msg}</p>
           <br>

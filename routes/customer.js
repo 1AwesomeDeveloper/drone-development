@@ -181,15 +181,16 @@ router.delete('/deleteAccount', authCustomer, async (req, res) =>{
 })
 
 
-router.post('/checkMyDrones', authCustomer, async (req, res) => {
+router.get('/checkMyDrones', authCustomer, async (req, res) => {
     try{
-        const drones = await Drone.find({assignedto: req.customer.email}, {droneNo:1, modal:1, _id:1})
-        if(!drone){
+        const drone = await Drone.find({assignedto: req.customer.email}, {droneNo:1, modal:1, _id:1})
+        if(!drone || !drone[0]){
             return res.send({error:{message:"There is no drone registered by You."}})
         }
 
-        res.send(drones)
+        res.send(drone)
     } catch(e) {
+        console.log(e)
         res.status(400).send({error:{message:"Something went wrong try again"}})
     }
 })

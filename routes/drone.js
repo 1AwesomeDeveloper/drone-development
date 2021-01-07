@@ -193,17 +193,18 @@ router.delete('/deRegisterDrone/:id', authDeveloper, async (req, res) =>{
                 //digitalCertificate : "[Base64 Encoded X509 Certificate of the manufacturer and is a mandatory string attribute]"
           }
 
-          const status = await DgcaCall.verifyDroneDeregestration(body)
-          //console.log(status)
-          if(status == -1 ){
-              return res.status(400).send({error:{message: "Please check your info."}})
-          }
-          else if(status == 0 ){
-              return res.send({error:{message:"Server is down right now!!"}})
-          }
+        //   const status = await DgcaCall.verifyDroneDeregestration(body)
+        //   //console.log(status)
+        //   if(status == -1 ){
+        //       return res.status(400).send({error:{message: "Please check your info."}})
+        //   }
+        //   else if(status == 0 ){
+        //       return res.send({error:{message:"Server is down right now!!"}})
+        //   }
 
         res.send({message:`Your dore with ID:${drone.droneId} and Modal:${drone.modal} is removed Succesfully.`})
     } catch (error) {
+        console.log(e)
         res.status(403).send({error:{message:'Something is wrong', error:error.message}})
     }
 })

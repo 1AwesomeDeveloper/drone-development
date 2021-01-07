@@ -31,8 +31,6 @@ async function sendOtp(email, purpose, person) {
           <title>Document</title>
           <style>
               body{
-                  text-align: center; 
-                  background-color:rgb(104, 218, 253);
                   font-family: sans-serif;
               }
               .otp{
@@ -40,12 +38,12 @@ async function sendOtp(email, purpose, person) {
               }
           </style>
       </head>
-      <body style="bac">
+      <body style="background-color:rgb(104, 218, 253);text-align: center; ">
           <h1>Drone-Point</h1>
           <br>
           <h2>Hello ${person}</h2>
           <p>Did you just loged in, Your otp for ${purpose} to DronePoint is</p>
-          <h2 class="otp">${otp}.</h2> 
+          <h2 class="otp">${otp}</h2> 
           <br>
           <hr>
           <p> If its not you than someone else just tried to loged into your account.

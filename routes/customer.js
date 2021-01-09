@@ -7,6 +7,7 @@ const Drone = require('../models/Drone')
 const customerOtpGeneration = require('../middlware/customerOtpValidation')
 const sendOtp = require('../middlware/sendOtp')
 const mail = require('../middlware/mail')
+const { uploadKey, uploadLog } = require('../middlware/fileUpload')
 
 
 const router = express.Router()
@@ -183,7 +184,7 @@ router.delete('/deleteAccount', authCustomer, async (req, res) =>{
 
 router.post('/checkMyDrone', authCustomer, async (req, res) => {
     try{
-        const drone = await Drone.findOne({droneNo: req.body.droneNo})
+        const drone = await Drone.findOne({droneNo: req.body.droneNo, assignedTo:req.customer.email})
         if(!drone){
             throw new Error()
         }
@@ -194,17 +195,322 @@ router.post('/checkMyDrone', authCustomer, async (req, res) => {
     }
 })
 
-router.post('/flyDrone', authCustomer, async (req, res) => {
+router.post('/flyUp', authCustomer, uploadKey, async (req, res) => {
     try{
-        const drone = await Drone.updateOne({_id:req.body.id},{$push: { accessDates: Date.now() }})
+        const obj = JSON.parse(JSON.stringify(req.body))
+        if(!obj.id){
+            return res.status(403).send({error:{message:'Please Provide drone Id to store key'}})
+        }
+
+        if(req.multermsg){
+            return res.send({error:{message:req.multermsg}})
+        }
+
+        if(!req.file){
+            return res.status(403).send({error:{message:'Please provide a file'}})
+        }
+
+        const file =req.file
+
+        const key ={
+                        time:Date.now(),
+                        file:{
+                            fieldname: file.fieldname,
+                            originalname: file.originalname,
+                            encoding: file.encoding,
+                            mimetype: file.mimetype,
+                            extname:req.extname,
+                            size:file.size,
+                            buffer: file.buffer
+                        }
+                    }
+
+        // console.log(key, req.customer.email)
+        console.log(await Drone.findOne({_id:obj.id, assignedTo:req.customer.email}))
+        const drone = await Drone.updateOne({_id:obj.id, assignedTo:req.customer.email},{$addToSet:{keyRegistry:key}})
         if(!drone){
             return res.send({error:{message:"There is no such drone in your account."}})
         }
 
-        res.send({message:"You can now fly your drone."})
+        res.send({message:"Your key is upadted in database."})
     } catch(e){
         console.log(e)
         res.status(500).send({error:{message:"Something went wrong Please try again."}})
+    }
+})
+
+router.post('/flyDown', authCustomer, uploadLog, async (req, res) => {
+    try{
+        const obj = JSON.parse(JSON.stringify(req.body))
+        if(!obj.id){
+            return res.status(403).send({error:{message:'Please Provide drone Id to store key'}})
+        }
+        if(req.multermsg){
+            return res.send({error:{message:req.multermsg}})
+        }
+
+        if(!req.file){
+            return res.status(403).send({error:{message:'Please provide a file'}})
+        }
+
+        const file =req.file
+
+        const key ={
+                        time:Date.now(),
+                        file:{
+                            fieldname: file.fieldname,
+                            originalname: file.originalname,
+                            encoding: file.encoding,
+                            mimetype: file.mimetype,
+                            extname:req.extname,
+                            size:file.size,
+                            buffer: file.buffer
+                        }
+                    }
+
+        const drone = await Drone.updateOne({_id:obj.id, assignedTo:req.customer.email},{$push: {logRegistry:key}})
+        if(!drone){
+            return res.send({error:{message:"There is no such drone in your account."}})
+        }
+
+        res.send({message:"Your flight log is upadted in database."})
+    } catch(e){
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again."}})
+    }
+})
+
+router.get('/allFirmware/:id', authCustomer, async (req, res) =>{
+    try{
+        console.log(req.params.id)
+        const modal = await DModal.findById(req.params.id, {'firmwareRegistry.version':1,'firmwareRegistry.time':1, 'firmwareRegistry._id':1})
+
+        if(!modal){
+            return res.send({error:{message:'There is no modal with this id.'}})
+        }
+
+        res.send(modal)
+    } catch {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+
+//under construction
+router.get('/downloadFirmware' , async (req, res) =>{
+    
+    try{
+
+        console.log(req.query)
+        if(!req.query.fid|| !req.query.token ||!req.query.id){
+            return res.send({error:{message:'Please provide valid id, full date with time, token for xx.xx.xx firmware downlaod'}})
+        }
+
+        const token = req.query.token
+        if(!token){
+            return res.send({error:{message:'Please login'}})
+        }
+
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const customer = await Customer.findById(payload.id)
+        if(!customer){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const tokenExesist = customer.accessTokens.includes(token)
+        if(!tokenExesist || !customer.verificationStatus){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const id = req.query.id
+        
+        const { firmwareRegistry } = await DModal.findById(id, {_id: 0, firmwareRegistry: {"$elemMatch": {_id: req.query.fid}}})
+
+        console.log(firmwareRegistry)
+
+        if(!firmwareRegistry[0]){
+            return res.send({message:'There is no firmware availabe for this modal'})
+        }
+
+        let date = new Date(firmwareRegistry[0].time)
+        let dateString = date.toLocaleDateString()
+
+        res.set({
+            encoding: firmwareRegistry[0].file.encoding,
+            mimetype:firmwareRegistry[0].file.mimetype,
+            orignalname:firmwareRegistry[0].file.orignalname,
+            'Content-Disposition': 'attachment; filename=' + `firmware${dateString}.${firmwareRegistry[0].file.extname}`,
+            size:firmwareRegistry[0].file.size
+          })
+     
+          res.send(firmwareRegistry[0].file.buffer);
+    } catch(e) {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/latestFirmwareDownload', async (req, res) =>{
+    try{
+        const token = req.query.token
+        if(!token){
+            return res.send({error:{message:'Please login'}})
+        }
+
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const customer = await Customer.findById(payload.id)
+        if(!customer){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const tokenExesist = customer.accessTokens.includes(token)
+        if(!tokenExesist || !customer.verificationStatus){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const id = req.query.id
+        const { latestFirmware } = await DModal.findById(id, {latestFirmware:1})
+
+        let date = new Date(latestFirmware.time)
+        let dateString = date.toLocaleDateString()
+
+        res.set({
+            encoding: latestFirmware.file.encoding,
+            mimetype:latestFirmware.file.mimetype,
+            orignalname:latestFirmware.file.orignalname,
+            'Content-Disposition': 'attachment; filename=' + `firmware${dateString}${latestFirmware.file.extname}`,
+            size:latestFirmware.file.size
+        })
+     
+        res.send(latestFirmware.file.buffer);
+
+    } catch(e){
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/allKeys/:id', authCustomer, async (req, res) =>{
+    try{
+        console.log(req.params.id)
+        const modal = await Drone.findOne({_id:req.params.id, assignedTo:req.customer.email}, {'keyRegistry.time':1, 'keyRegistry._id':1})
+        if(!modal){
+            return res.send({error:{message:'There is no key for this drone.'}})
+        }
+
+        res.send(modal)
+    } catch {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/allLogs/:id', authCustomer, async (req, res) =>{
+    try{
+        console.log(req.params.id)
+        const modal = await Drone.findOne({_id:req.params.id, assignedTo:req.customer.email}, {'logRegistry.time':1, 'logRegistry._id':1})
+        if(!modal){
+            return res.send({error:{message:'There is no key for this drone.'}})
+        }
+
+        res.send(modal)
+    } catch {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/downloadKey' , async (req, res) =>{
+    
+    try{
+
+        console.log(req.query)
+        if(!req.query.kid|| !req.query.token ||!req.query.id){
+            return res.send({error:{message:'Please provide valid key id, dorne id and your validation for key downlaod'}})
+        }
+
+        const token = req.query.token
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const customer = await Customer.findById(payload.id)
+        if(!customer){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const tokenExesist = customer.accessTokens.includes(token)
+        if(!tokenExesist || !customer.verificationStatus){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const id = req.query.id
+        const { keyRegistry } = await Drone.findOne({_id:id, assignedTo:customer.email}, {_id: 0, keyRegistry: {"$elemMatch": {_id: req.query.kid}}})
+
+        console.log(keyRegistry)
+
+        if(!keyRegistry[0]){
+            return res.send({message:'There is no key availabe for this modal'})
+        }
+
+        let date = new Date(keyRegistry[0].time)
+        let dateString = date.toLocaleDateString()
+
+        res.set({
+            encoding: keyRegistry[0].file.encoding,
+            mimetype:keyRegistry[0].file.mimetype,
+            orignalname:keyRegistry[0].file.orignalname,
+            'Content-Disposition': 'attachment; filename=' + `key${dateString}.${keyRegistry[0].file.extname}`,
+            size:keyRegistry[0].file.size
+          })
+     
+          res.send(keyRegistry[0].file.buffer);
+    } catch(e) {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/downloadLog' , async (req, res) =>{
+    
+    try{
+
+        if(!req.query.lid|| !req.query.token ||!req.query.id){
+            return res.send({error:{message:'Please provide valid log id, dorne id and your validation for key downlaod'}})
+        }
+
+        const token = req.query.token
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const customer = await Customer.findById(payload.id)
+        if(!customer){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const tokenExesist = customer.accessTokens.includes(token)
+        if(!tokenExesist || !customer.verificationStatus){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const id = req.query.id
+        const { logRegistry } = await Drone.findOne({_id:id, assignedTo:customer.email}, {_id: 0, logRegistry: {"$elemMatch": {_id: req.query.lid}}})
+
+        if(!logRegistry[0]){
+            return res.send({message:'There is no log availabe for this modal'})
+        }
+
+        let date = new Date(logRegistry[0].time)
+        let dateString = date.toLocaleDateString()
+
+        res.set({
+            encoding: logRegistry[0].file.encoding,
+            mimetype:logRegistry[0].file.mimetype,
+            orignalname:logRegistry[0].file.orignalname,
+            'Content-Disposition': 'attachment; filename=' + `log${dateString}.${logRegistry[0].file.extname}`,
+            size:logRegistry[0].file.size
+          })
+     
+          res.send(logRegistry[0].file.buffer);
+    } catch(e) {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
     }
 })
 

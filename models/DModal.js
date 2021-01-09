@@ -89,6 +89,46 @@ const droneSchema = new mongoose.Schema({
     inAir:{
         type:Number,
         default:0
+    },
+    firmwareRegistry:[{
+        version:{
+            type:String,
+            required:true
+        },
+        time:{
+            type:Date,
+            default:Date.now(),
+            required:true
+        },
+        file:{
+            fieldname: {type:String},
+            originalname: {type:String},
+            encoding: {type:String},
+            mimetype: {type:String},
+            buffer:{type:Buffer},
+            size: {type:Number},
+            extname:{type:String}
+        }
+    }],
+    latestFirmware:{
+        version:{
+            type:String,
+            required:true
+        },
+        time:{
+            type:Date,
+            default:Date.now(),
+            required:true
+        },
+        file:{
+            fieldname: {type:String},
+            originalname: {type:String},
+            encoding: {type:String},
+            mimetype: {type:String},
+            buffer:{type:Buffer},
+            size: {type:Number},
+            extname:{type:String}
+        }
     }
 })
 

@@ -1,11 +1,14 @@
 const express = require('express')
 const validator = require('validator')
 const router = express.Router()
+const jwt = require('jsonwebtoken')
 
 const { authDeveloper } = require('../middlware/dev_authentcation')
+const { uploadFirm } = require('../middlware/fileUpload')
 const upload = require('../middlware/imgaes')
 const DgcaCall = require('../middlware/DgcaCall')
 
+const Developer = require('../models/Developer')
 const DModal = require('../models/DModal')
 const Drone = require('../models/Drone')
 const Customer = require('../models/Customer')
@@ -80,6 +83,161 @@ router.get('/modals', authDeveloper, async (req, res) =>{
         res.send(403).send({error:{message:'something went worng', error: e}})
     }
 })
+
+router.post('/upladFirmware', authDeveloper, uploadFirm, async (req, res) => {
+    try{
+        if(req.multermsg){
+            return res.send({error:{message:req.multermsg}})
+        }
+
+        const file = req.file
+        console.log(req.extname)
+        const obj = JSON.parse(JSON.stringify(req.body))
+        if(!file){
+            return res.status(403).send({error:{message:'Please provide a file'}})
+        }
+        if(!obj.id || !obj.version){
+            res.status(403).send({error:{message:"Please Check Modal id and Firmware version"}})
+        }
+        console.log(obj.id, obj.version)
+
+        const key ={
+                        version:req.body.version,
+                        time:Date.now(),
+                        file:{
+                            fieldname: file.fieldname,
+                            originalname: file.originalname,
+                            encoding: file.encoding,
+                            mimetype: file.mimetype,
+                            size:file.size,
+                            extname:req.extname,
+                            buffer: file.buffer
+                        }
+                    }
+
+        const modal = await DModal.updateOne({_id:req.body.id},{ $addToSet:{firmwareRegistry:key}, latestFirmware:key})
+        if(!modal){
+            return res.send({error:{message:"There is no such modal in your account."}})
+        }
+
+        res.send({message:"New Firmware is upadted in database"})
+    } catch(e){
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again."}})
+    }
+})
+
+router.get('/allFirmware/:id', authDeveloper, async (req, res) =>{
+    try{
+        console.log(req.params.id)
+        const modal = await DModal.findById(req.params.id, {'firmwareRegistry.version':1,'firmwareRegistry.time':1, 'firmwareRegistry._id':1})
+
+        if(!modal){
+            return res.send({error:{message:'There is no modal with this id.'}})
+        }
+
+        res.send(modal)
+    } catch {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+
+//under construction
+router.get('/downloadFirmware' , async (req, res) =>{
+    
+    try{
+
+        console.log(req.query)
+        if(!req.query.fid|| !req.query.token ||!req.query.id){
+            return res.send({error:{message:'Please provide valid id, full date with time, token for xx.xx.xx firmware downlaod'}})
+        }
+
+        const token = req.query.token
+        if(!token){
+            return res.send({error:{message:'Please login'}})
+        }
+
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const developer = await Developer.findById(payload.id)
+        if(!developer){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const tokenExesist = developer.accessTokens.includes(token)
+        if(!tokenExesist || !developer.verificationStatus){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const id = req.query.id
+        
+        const { firmwareRegistry } = await DModal.findById(id, {_id: 0, firmwareRegistry: {"$elemMatch": {_id: req.query.fid}}})
+
+        console.log(firmwareRegistry)
+
+        if(!firmwareRegistry[0]){
+            return res.send({message:'There is no firmware availabe for this modal'})
+        }
+
+        let date = new Date(firmwareRegistry[0].time)
+        let dateString = date.toLocaleDateString()
+
+        res.set({
+            encoding: firmwareRegistry[0].file.encoding,
+            mimetype:firmwareRegistry[0].file.mimetype,
+            orignalname:firmwareRegistry[0].file.orignalname,
+            'Content-Disposition': 'attachment; filename=' + `firmware${dateString}.${firmwareRegistry[0].file.extname}`,
+            size:firmwareRegistry[0].file.size
+          })
+     
+          res.send(firmwareRegistry[0].file.buffer);
+    } catch(e) {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/latestFirmwareDownload', async (req, res) =>{
+    try{
+        const token = req.query.token
+        if(!token){
+            return res.send({error:{message:'Please login'}})
+        }
+
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const developer = await Developer.findById(payload.id)
+        if(!developer){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const tokenExesist = developer.accessTokens.includes(token)
+        if(!tokenExesist || !developer.verificationStatus){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const id = req.query.id
+        const { latestFirmware } = await DModal.findById(id, {latestFirmware:1})
+
+        let date = new Date(latestFirmware.time)
+        let dateString = date.toLocaleDateString()
+
+        res.set({
+            encoding: latestFirmware.file.encoding,
+            mimetype:latestFirmware.file.mimetype,
+            orignalname:latestFirmware.file.orignalname,
+            'Content-Disposition': 'attachment; filename=' + `firmware${dateString}${latestFirmware.file.extname}`,
+            size:latestFirmware.file.size
+        })
+     
+        res.send(latestFirmware.file.buffer);
+
+    } catch(e){
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
 
 //********************************************************* */
 // Routes for New Drones           *********************** */

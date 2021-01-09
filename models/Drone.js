@@ -71,8 +71,37 @@ const droneShema = new mongoose.Schema({
         default:false,
         required:true
     }, */
-    accessDates:[{
-        type:Date
+    keyRegistry:[{
+        time:{
+            type:Date,
+            default:Date.now(),
+            required:true
+        },
+        file:{
+            fieldname: {type:String},
+            originalname: {type:String},
+            encoding: {type:String},
+            mimetype: {type:String},
+            buffer:{type:Buffer},
+            size: {type:Number},
+            extname:{type:String}
+        }
+    }],
+    logRegistry:[{
+        time:{
+            type:Date,
+            default:Date.now(),
+            required:true
+        },
+        file:{
+            fieldname: {type:String},
+            originalname: {type:String},
+            encoding: {type:String},
+            mimetype: {type:String},
+            buffer:{type:Buffer},
+            size: {type:Number},
+            extname:{type:String}
+        }
     }]
 })
 

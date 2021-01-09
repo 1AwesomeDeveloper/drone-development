@@ -84,7 +84,7 @@ router.get('/modals', authDeveloper, async (req, res) =>{
     }
 })
 
-router.post('/upladFirmware', authDeveloper, uploadFirm, async (req, res) => {
+router.post('/uploadFirmware', authDeveloper, uploadFirm, async (req, res) => {
     try{
         if(req.multermsg){
             return res.send({error:{message:req.multermsg}})

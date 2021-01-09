@@ -2,6 +2,7 @@ const express = require('express')
 const jwt = require('jsonwebtoken')
 const { loginTokendecoder, authDeveloper, forgotPasswordTokendecoder } = require('../middlware/dev_authentcation')
 const mail = require('../middlware/mail')
+const Drone = require('../models/Drone')
 const Developer = require('../models/Developer')
 const Customer = require('../models/Customer')
 const developerOtpGeneration = require('../middlware/developerOtpValidation')
@@ -218,6 +219,130 @@ router.get('/verifyDev/:id', authDeveloper, async (req, res)=>{
     } catch(error){
         console.log(error)
         res.status(403).send({error:{message:'Something is worng', error:error.message, status:false}})
+    }
+})
+
+// get keys and logs
+router.get('/allKeys/:id', authDeveloper, async (req, res) =>{
+    try{
+        console.log(req.params.id)
+        const modal = await Drone.findOne({_id:req.params.id}, {'keyRegistry.time':1, 'keyRegistry._id':1})
+        if(!modal){
+            return res.send({error:{message:'There is no key for this drone.'}})
+        }
+
+        res.send(modal)
+    } catch {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/allLogs/:id', authDeveloper, async (req, res) =>{
+    try{
+        console.log(req.params.id)
+        const modal = await Drone.findOne({_id:req.params.id}, {'logRegistry.time':1, 'logRegistry._id':1})
+        if(!modal){
+            return res.send({error:{message:'There is no key for this drone.'}})
+        }
+
+        res.send(modal)
+    } catch {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/downloadKey' , async (req, res) =>{
+    
+    try{
+
+        console.log(req.query)
+        if(!req.query.kid|| !req.query.token ||!req.query.id){
+            return res.send({error:{message:'Please provide valid key id, dorne id and your validation for key downlaod'}})
+        }
+
+        const token = req.query.token
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const developer = await Developer.findById(payload.id)
+        if(!developer){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const tokenExesist = developer.accessTokens.includes(token)
+        if(!tokenExesist || !developer.verificationStatus){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const id = req.query.id
+        const { keyRegistry } = await Drone.findOne({_id:id}, {_id: 0, keyRegistry: {"$elemMatch": {_id: req.query.kid}}})
+
+        console.log(keyRegistry)
+
+        if(!keyRegistry[0]){
+            return res.send({message:'There is no key availabe for this modal'})
+        }
+
+        let date = new Date(keyRegistry[0].time)
+        let dateString = date.toLocaleDateString()
+
+        res.set({
+            encoding: keyRegistry[0].file.encoding,
+            mimetype:keyRegistry[0].file.mimetype,
+            orignalname:keyRegistry[0].file.orignalname,
+            'Content-Disposition': 'attachment; filename=' + `key${dateString}.${keyRegistry[0].file.extname}`,
+            size:keyRegistry[0].file.size
+          })
+     
+          res.send(keyRegistry[0].file.buffer);
+    } catch(e) {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
+router.get('/downloadLog' , async (req, res) =>{
+    
+    try{
+
+        if(!req.query.lid|| !req.query.token ||!req.query.id){
+            return res.send({error:{message:'Please provide valid log id, dorne id and your validation for key downlaod'}})
+        }
+
+        const token = req.query.token
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const developer = await Developer.findById(payload.id)
+        if(!developer){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const tokenExesist = developer.accessTokens.includes(token)
+        if(!tokenExesist || !developer.verificationStatus){
+            return res.send({error:{message:'Pleae login'}})
+        }
+
+        const id = req.query.id
+        const { logRegistry } = await Drone.findOne({_id:id}, {_id: 0, logRegistry: {"$elemMatch": {_id: req.query.lid}}})
+
+        if(!logRegistry[0]){
+            return res.send({message:'There is no log availabe for this modal'})
+        }
+
+        let date = new Date(logRegistry[0].time)
+        let dateString = date.toLocaleDateString()
+
+        res.set({
+            encoding: logRegistry[0].file.encoding,
+            mimetype:logRegistry[0].file.mimetype,
+            orignalname:logRegistry[0].file.orignalname,
+            'Content-Disposition': 'attachment; filename=' + `log${dateString}.${logRegistry[0].file.extname}`,
+            size:logRegistry[0].file.size
+          })
+     
+          res.send(logRegistry[0].file.buffer);
+    } catch(e) {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
     }
 })
 

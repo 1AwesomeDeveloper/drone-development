@@ -84,6 +84,8 @@ router.get('/modals', authDeveloper, async (req, res) =>{
     }
 })
 
+// upload and download firm ware **************************************************
+
 router.post('/uploadFirmware', authDeveloper, uploadFirm, async (req, res) => {
     try{
         if(req.multermsg){
@@ -315,7 +317,7 @@ router.get('/droneDetails/:id', authDeveloper, async (req, res) => {
         if(!req.params.id){
             return res.send({error:{message:'Please provide drone Id'}})
         }
-        const drone = await Drone.findById(req.params.id)
+        const drone = await Drone.findById(req.params.id,{'keyRegistry.file':0, 'logRegistry.file':0})
         if(!drone){
             return res.status(400).send({error:{message:'no modal with this name exesist'}})
         }

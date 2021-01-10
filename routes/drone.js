@@ -54,7 +54,7 @@ router.post('/modalRegestration', upload, authDeveloper, async (req, res)=>{
 
 router.get('/viewModals', authDeveloper,async (req, res) =>{
     try{
-        const modals = await DModal.find()
+        const modals = await DModal.find({},{'firmwareRegistry.file':0, 'latestFirmware.file':0})
         
         res.send({modals:modals})
     } catch(e) {

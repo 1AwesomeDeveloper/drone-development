@@ -157,12 +157,12 @@ router.delete('/deleteAccount', authCustomer, async (req, res) =>{
 
 router.post('/checkMyDrone', authCustomer, async (req, res) => {
     try{
-        const drone = await Drone.findOne({droneNo: req.body.droneNo, assignedTo:req.customer.email})
+        const drone = await Drone.findOne({flightControllerNumber: req.body.flightControllerNumber, assignedTo:req.customer.email})
         if(!drone){
             throw new Error()
         }
 
-        res.send({message: `your Done with modal Id -${drone.modalId} and Drone number -${drone.droneNo} is registered`})
+        res.send({message: `your Done with modal Id -${drone.modalId} and Flight Controller Number -${drone.flightControllerNumber} is registered`})
     } catch(e) {
         res.status(400).send({error:{message:"Your drone is not registered"}})
     }

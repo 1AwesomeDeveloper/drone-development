@@ -257,16 +257,18 @@ router.post('/droneRegestration', authDeveloper, async (req, res) =>{
         }
         
         req.body.modalId = modal._id
+        modal.inAir++
+        req.body.droneNo = modal.inAir
         //to be generated 128 bit and hex
         var UUID = (Math.floor((Math.random() * 0x100000000000000000000000000000000) + 1)).toString(16).toUpperCase();
         var droneExesist = await Drone.findOne({UUID: UUID})
         
-
        while(droneExesist){
             UIID = (Math.floor((Math.random() * 0x100000000000000000000000000000000) + 1)).toString(16).toUpperCase();
             droneExesist = await Drone.findOne({UUID: UUID}) 
         }
         req.body.UUID = UUID
+        
 
         const drone = new Drone(req.body)
         //console.log(drone)
@@ -292,7 +294,7 @@ router.post('/droneRegestration', authDeveloper, async (req, res) =>{
         //   else if(status == 0 ){
         //       return res.send({error:{message:"Server is down right now"}})
         //   }
-
+        await modal.save()
         await drone.save()
 
         res.send({message:'Your Drone is registered'})

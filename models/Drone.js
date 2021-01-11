@@ -26,51 +26,14 @@ const droneShema = new mongoose.Schema({
         type:Date,
         required:true
     },
-    manufactringBatch:{
+    flightControllerNumber:{
         type:String,
-        required:true
-    },
-    manufactringShift:{
-        type:String,
-        required:true
-    },
-    serialNumber:{
-        type:Number,
-        required:true
-    },
-    hardMake:{
-        type:Number,
-        required:true
-    },
-    hardVersion:{
-        type:Number,
-        required:true
-    },
-    hardSerialNumber:{
-        type:Number,
-        required:true
-    },
-    softMake:{
-        type:Number,
-        required:true
-    },
-    softVersion:{
-        type:Number,
-        required:true
-    },
-    softSerialNumber:{
-        type:Number,
         required:true
     },
     assignedTo:{
         type:String,
         required:true
     },
-    /* registered:{
-        type:Boolean,
-        default:false,
-        required:true
-    }, */
     keyRegistry:[{
         time:{
             type:Date,

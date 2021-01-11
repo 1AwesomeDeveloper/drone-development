@@ -12,6 +12,12 @@ const router = express.Router()
 
 router.post('/register', async (req, res) =>{
     try{
+
+        const exesist = await Developer.findOne({email: req.body.email})
+        if(exesist){
+            return res.send({error:{message:'You are already registered'}})
+        }
+
         //console.log("hell 213213")
         const developerDetails = {
             name:req.body.name,
@@ -39,7 +45,7 @@ router.post('/registerCustomer', authDeveloper, async (req, res) =>{
     try{
         const exesist = await Customer.findOne({email: req.body.email})
         if(exesist){
-            response.status(403).send({error:{message:'Customer mail is already registered'}})
+            return res.status(403).send({error:{message:'Customer mail is already registered'}})
         }
 
         const customerDetails = {

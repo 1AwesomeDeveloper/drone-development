@@ -26,11 +26,40 @@ router.post('/register', async (req, res) =>{
             msg:'Thankyou for regestring on DronePoint but you have to wait for verification mail by our developers.'
         }, developerDetails.name, 'Regestration on DronePoint')
 
-        res.send({message:'You are registred Succesfully! but you have to wait until someone verifiy you, you will be thorugh mail when verified'})
+        res.send({message:'You are registred Succesfully! but you have to wait until someone verifiy you, you will be informed thorugh mail when verified'})
     } catch (e) {
         console.log("hell")
         console.log(e)
         res.status(500).send({error:{message:'Check you Details something is wrong'}})
+    }
+})
+
+//routechanged
+router.post('/registerCustomer', authDeveloper, async (req, res) =>{
+    try{
+        const exesist = await Customer.findOne({email: req.body.email})
+        if(exesist){
+            response.status(403).send({error:{message:'Customer mail is already registered'}})
+        }
+
+        const customerDetails = {
+            name:req.body.name,
+            email:req.body.email,
+            password:req.body.password,
+            phNumber:req.body.phNumber
+        }
+
+        const customer = new Customer(customerDetails)
+        await customer.save()
+
+        mail(customerDetails.email, {
+            head:'Welcome to drone Point',
+            msg:'Thankyou for regestring on DronePoint but you have to wait for verification mail by our developers.'
+        }, customerDetails.name, 'Regestration on DronePoint')
+        res.send({message:req.body.email + ' is registred Succesfully! but you have to verify him.'})
+    } catch (e) {
+        console.log(e)
+        res.status(403).send({error:{message:'Invlaid Deatils Or server is down!! see console for error'}, e:e})
     }
 })
 

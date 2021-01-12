@@ -16,8 +16,11 @@ const Customer = require('../models/Customer')
 //********************************************************* */
 // Routes for different dorne modals*********************** */
 
-router.post('/modalRegestration', upload, authDeveloper, async (req, res)=>{
+router.post('/modalRegestration', authDeveloper, upload, async (req, res)=>{
     try{
+        console.log(req.file)
+        const file = req.file
+
         const obj = JSON.parse(JSON.stringify(req.body))
         for(var key in obj){
             if(!obj[key] || obj[key] == ""){
@@ -25,7 +28,6 @@ router.post('/modalRegestration', upload, authDeveloper, async (req, res)=>{
                 return res.send({message:`Please check ${key}`})
             }
         }
-        console.log()
 
         obj.modalName = obj.modalName.toString()
         obj.modalNumber = obj.modalNumber.toString()
@@ -34,8 +36,9 @@ router.post('/modalRegestration', upload, authDeveloper, async (req, res)=>{
         obj.purposeOfOperation = obj.purposeOfOperation.toString()
         obj.engineType = obj.engineType.toString()
 
+        
         if(req.file){
-            obj.RPASModelPhoto = req.file.buffer.toString('base64')
+            obj.RPASModelPhoto = file.buffer.toString('base64')
         }
         
         const newModal = new DModal(obj)
@@ -43,9 +46,9 @@ router.post('/modalRegestration', upload, authDeveloper, async (req, res)=>{
 
         res.send({message:`Your ${newModal.modalName} is reigstered.`})
     } catch (e) {
-        if(e.MulterError){
-            console.log('multer')
-        }
+        // if(e.MulterError){
+        //     console.log('multer')
+        // }
         console.log(e)
         res.status(400).send({error:{message:'Please check the image type and size', error:e}})
     }

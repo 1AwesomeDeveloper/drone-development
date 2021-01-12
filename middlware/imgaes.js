@@ -22,7 +22,7 @@ function checkFileType(file, cb, req){
         return cb(null, true)
     } else {
         req.errorMessage = 'Please provide jpeg/jpg/png type image of less than 1MB'
-        return cb(null, true)
+        return cb(true, true)
     }
 }
 

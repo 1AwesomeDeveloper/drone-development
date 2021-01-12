@@ -92,13 +92,11 @@ const droneSchema = new mongoose.Schema({
     },
     firmwareRegistry:[{
         version:{
-            type:String,
-            required:true
+            type:String
         },
         time:{
             type:Date,
-            default:Date.now(),
-            required:true
+            default:Date.now()
         },
         file:{
             fieldname: {type:String},
@@ -113,12 +111,10 @@ const droneSchema = new mongoose.Schema({
     latestFirmware:{
         version:{
             type:String,
-            required:true
         },
         time:{
             type:Date,
-            default:Date.now(),
-            required:true
+            default:Date.now()
         },
         file:{
             fieldname: {type:String},

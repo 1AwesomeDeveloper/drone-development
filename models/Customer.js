@@ -93,7 +93,7 @@ customerSchema.methods.generateToken = async function(){
     const customer = this
     const accessToken = jwt.sign({id: customer._id}, process.env.ACCESS_TOKEN_SECRET, {
         algorithm: "HS256",
-        expiresIn: "1 days"
+        expiresIn: "1800000"
     })
 
     customer.loginStatus.otp.value = null

@@ -247,6 +247,7 @@ router.get('/latestFirmwareDownload', async (req, res) =>{
 router.post('/droneRegestration', authDeveloper, async (req, res) =>{
     try{
         const modal = await DModal.findOne({modalName: req.body.modal})
+        console.log(modal)
         if(!modal){
             return res.send({error:{message:"Modal of such Name not found."}})
         }

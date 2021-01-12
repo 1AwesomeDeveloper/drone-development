@@ -95,7 +95,7 @@ developerSchema.methods.generateToken = async function(){
     const developer = this
     const accessToken = jwt.sign({id: developer._id}, process.env.ACCESS_TOKEN_SECRET, {
         algorithm: "HS256",
-        expiresIn: "300000"
+        expiresIn: "900000"
     })
 
     developer.loginStatus.otp.value = null

@@ -158,6 +158,9 @@ router.delete('/deleteAccount', authCustomer, async (req, res) =>{
 
 router.post('/checkMyDrone', authCustomer, async (req, res) => {
     try{
+        if(!req.body.flightControllerNumber){
+            return res.status(400).send({error:{message:'Please Provide flight controller number.'}})
+        }
         const drone = await Drone.findOne({flightControllerNumber: req.body.flightControllerNumber, assignedTo:req.customer.email})
         if(!drone){
             throw new Error()

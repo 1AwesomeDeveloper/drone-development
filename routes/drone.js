@@ -306,6 +306,9 @@ router.post('/droneRegestration', authDeveloper, async (req, res) =>{
         console.log(e)
         res.status(400).send({error:{message:'Something is wrong', error: e}})
     }
+
+    //pursposeOfOperation
+    //purposeOfOperation
 })
 
 router.get('/viewDrones', authDeveloper, async (req, res) =>{

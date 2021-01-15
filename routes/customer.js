@@ -174,7 +174,7 @@ router.post('/checkMyDrone', authCustomer, async (req, res) => {
 
 router.post('/flyUp', authCustomer, uploadKey, async (req, res) => {
     try{
-        const obj = JSON.parse(JSON.stringify(req.body))
+        const obj = {id:req.query.id}
         if(!obj.id){
             return res.status(403).send({error:{message:'Please Provide drone Id to store key'}})
         }
@@ -202,10 +202,9 @@ router.post('/flyUp', authCustomer, uploadKey, async (req, res) => {
                         }
                     }
 
-        // console.log(key, req.customer.email)
-        console.log(await Drone.findOne({_id:obj.id, assignedTo:req.customer.email}))
-        const drone = await Drone.updateOne({_id:obj.id, assignedTo:req.customer.email},{$addToSet:{keyRegistry:key}})
-        if(!drone){
+        const drone = await Drone.updateOne({flightControllerNumber:obj.id, assignedTo:req.customer.email},{$addToSet:{keyRegistry:key}})
+
+        if(!drone.n){
             return res.send({error:{message:"There is no such drone in your account."}})
         }
 
@@ -219,7 +218,7 @@ router.post('/flyUp', authCustomer, uploadKey, async (req, res) => {
 router.post('/flyDown', authCustomer, uploadLog, async (req, res) => {
     try{
         const obj = {id:req.query.id}
-    
+        console.log(obj.id)
         if(!obj.id){
             return res.status(403).send({error:{message:'Please Provide drone Id to store key'}})
         }
@@ -232,6 +231,7 @@ router.post('/flyDown', authCustomer, uploadLog, async (req, res) => {
         }
 
         const file =req.file
+        console.log(file)
 
         const key ={
                         time:Date.now(),
@@ -246,8 +246,8 @@ router.post('/flyDown', authCustomer, uploadLog, async (req, res) => {
                         }
                     }
 
-        const drone = await Drone.updateOne({flightControllerNumber:obj.id, assignedTo:req.customer.email},{$push: {logRegistry:key}})
-        if(!drone){
+        const drone = await Drone.updateOne({flightControllerNumber:obj.id, assignedTo:req.customer.email},{$addToSet: {logRegistry:key}})
+        if(!drone.n){
             return res.send({error:{message:"There is no such drone in your account."}})
         }
 

@@ -249,6 +249,11 @@ router.get('/latestFirmwareDownload', async (req, res) =>{
 
 router.post('/droneRegestration', authDeveloper, async (req, res) =>{
     try{
+        const exesist = await Drone.findOne({flightControllerNumber:req.body.flightControllerNumber}, {_id:1})
+        if(exesist){
+            return res.send({error:{message:'Flight Controller Number is invalid'}})
+        }
+
         const modal = await DModal.findOne({modalName: req.body.modal})
         console.log(modal)
         if(!modal){

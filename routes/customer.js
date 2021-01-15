@@ -216,9 +216,10 @@ router.post('/flyUp', authCustomer, uploadKey, async (req, res) => {
     }
 })
 
-router.post('/flyDown/:id', authCustomer, uploadLog, async (req, res) => {
+router.post('/flyDown', authCustomer, uploadLog, async (req, res) => {
     try{
-        const obj = {id:req.params.id}
+        const obj = {id:req.query.id}
+    
         if(!obj.id){
             return res.status(403).send({error:{message:'Please Provide drone Id to store key'}})
         }

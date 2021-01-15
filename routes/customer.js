@@ -246,7 +246,7 @@ router.post('/flyDown', authCustomer, uploadLog, async (req, res) => {
                         }
                     }
 
-        const drone = await Drone.updateOne({_id:obj.id, assignedTo:req.customer.email},{$push: {logRegistry:key}})
+        const drone = await Drone.updateOne({flightControllerNumber:obj.id, assignedTo:req.customer.email},{$push: {logRegistry:key}})
         if(!drone){
             return res.send({error:{message:"There is no such drone in your account."}})
         }

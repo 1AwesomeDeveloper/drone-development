@@ -245,7 +245,7 @@ router.get('/latestFirmwareDownload', async (req, res) =>{
 
     } catch(e){
         console.log(e)
-        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+        res.status(500).send({error:{message:"Something went wrong Please try again. or you are logged out."}})
     }
 })
 

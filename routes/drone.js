@@ -205,6 +205,7 @@ router.get('/downloadFirmware' , async (req, res) =>{
 
 router.get('/latestFirmwareDownload', async (req, res) =>{
     try{
+        console.log('HEllo')
         const token = req.query.token
         if(!token){
             return res.send({error:{message:'Please login'}})
@@ -222,8 +223,13 @@ router.get('/latestFirmwareDownload', async (req, res) =>{
         }
 
         const id = req.query.id
-        const { latestFirmware } = await DModal.findById(id, {latestFirmware:1})
+        const firm = await DModal.findById(id, {latestFirmware:1})
 
+        if(!firm){
+            return res.send({error:{message:"there is no avalilable firmware for this modal"}})
+        }
+
+        const { latestFirmware } = firm
         let date = new Date(latestFirmware.time)
         let dateString = date.toLocaleDateString()
 

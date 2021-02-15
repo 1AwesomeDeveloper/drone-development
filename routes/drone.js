@@ -206,7 +206,7 @@ router.get('/downloadFirmware' , async (req, res) =>{
 router.get('/latestFirmwareVersion', authDeveloper, async (req, res) =>{
     try{
         const id = req.query.id
-        if(!id){
+        if(!id)
             return res.send({error:{message:'Please provide an id of modal'}})
            
         const firm = await DModal.findById(id, {latestFirmware:1})
@@ -218,7 +218,7 @@ router.get('/latestFirmwareVersion', authDeveloper, async (req, res) =>{
         const { latestFirmware } = firm
 
         res.send({message:`Latest firmware version is ${latestFirmware.version}`})
-    } catch {
+    } catch(e) {
         console.log(e)
         res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
     }

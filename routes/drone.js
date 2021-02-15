@@ -203,6 +203,27 @@ router.get('/downloadFirmware' , async (req, res) =>{
     }
 })
 
+router.get('/latestFirmwareVersion', authDeveloper, async (req, res) =>{
+    try{
+        const id = req.query.id
+        if(!id){
+            return res.send({error:{message:'Please provide an id of modal'}})
+           
+        const firm = await DModal.findById(id, {latestFirmware:1})
+
+        if(!firm){
+            return res.send({error:{message:"there is no avalilable firmware for this modal"}})
+        }
+
+        const { latestFirmware } = firm
+
+        res.send({message:`Latest firmware version is ${latestFirmware.version}`})
+    } catch {
+        console.log(e)
+        res.status(500).send({error:{message:"Something went wrong Please try again. This is an internal error"}})
+    }
+})
+
 router.get('/latestFirmwareDownload', async (req, res) =>{
     try{
         console.log('HEllo')
